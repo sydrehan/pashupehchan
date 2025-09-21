@@ -1,0 +1,18 @@
+{
+  "profile_title": "आपका स्वागत है! अपनी प्रोफ़ाइल बनाएँ",
+  "name_label": "आपका नाम",
+  "phone_label": "फ़ोन नंबर",
+  "state_label": "राज्य",
+  "district_label": "जिला",
+  "pincode_label": "पिन कोड",
+  "create_profile_btn": "प्रोफ़ाइल बनाएँ और शुरू करें",
+  "home_title": "नस्ल पहचानकर्ता",
+  "animal_name_placeholder": "इस जानवर को एक नाम दें (उदाहरण: डेज़ी)",
+  "submit_btn": "नस्ल की पहचान करें",
+  "history_title": "पहचान का इतिहास",
+  "settings_title": "सेटिंग्स",
+  "theme_label": "थीम",
+  "language_label": "भाषा",
+  "nav_home": "होम",
+  "nav_history": "इतिहास"
+}

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Camera Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+        button { font-size: 20px; padding: 15px 30px; }
+    </style>
+</head>
+<body>
+    <h1>Camera Test</h1>
+    <p>Click this button to open the camera.</p>
+    <button onclick="document.getElementById('cameraInput').click()">Open Camera</button>
+    
+    <input 
+        type="file" 
+        accept="image/*" 
+        capture="environment" 
+        id="cameraInput" 
+        style="display: none;"
+    >
+</body>
+</html>

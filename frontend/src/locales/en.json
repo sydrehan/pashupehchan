@@ -1,0 +1,18 @@
+{
+  "profile_title": "Welcome! Create Your Profile",
+  "name_label": "Your Name",
+  "phone_label": "Phone Number",
+  "state_label": "State",
+  "district_label": "District",
+  "pincode_label": "Pincode",
+  "create_profile_btn": "Create Profile & Start",
+  "home_title": "Breed Identifier",
+  "animal_name_placeholder": "Give this animal a name (e.g., Daisy)",
+  "submit_btn": "Identify Breed",
+  "history_title": "Identification History",
+  "settings_title": "Settings",
+  "theme_label": "Theme",
+  "language_label": "Language",
+  "nav_home": "Home",
+  "nav_history": "History"
+}
