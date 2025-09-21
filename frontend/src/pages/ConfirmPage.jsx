@@ -1,5 +1,4 @@
-// File Path: frontend/src/pages/ConfirmPage.jsx
-
+// File Path: frontend/src/pages/ConfirmPage.jsx (FINAL CORRECTED VERSION)
 import React, { useContext, useState, useEffect } from 'react';
 import { AppContext } from '../contexts/AppContext';
 import { useNavigate } from 'react-router-dom';
@@ -9,12 +8,12 @@ import DetailsModal from '../components/DetailsModal';
 import { API_URL } from '../IP_CONFIG.js';
 
 const ConfirmPage = () => {
+    // NOTE: We REMOVED 'user' from here as it's not needed
     const { uploadImages, setUploadImages, setIsLoading, isLoading } = useContext(AppContext);
     const [error, setError] = useState('');
     const [resultData, setResultData] = useState(null);
     const [previews, setPreviews] = useState({ front: '', back: '', left: '', right: '' });
 
-    // Create previews for uploaded images
     useEffect(() => {
         setPreviews({
             front: uploadImages.front ? URL.createObjectURL(uploadImages.front) : '',
@@ -25,7 +24,7 @@ const ConfirmPage = () => {
     }, [uploadImages]);
 
     const handleSubmit = () => {
-        setError('');
+        setError(''); 
         setIsLoading(true);
 
         if (!navigator.geolocation) {
@@ -34,41 +33,45 @@ const ConfirmPage = () => {
             return;
         }
 
-        navigator.geolocation.getCurrentPosition(
-            async (position) => {
-                const { latitude, longitude } = position.coords;
-                const formData = new FormData();
-                // ❌ Removed user.id append
-                formData.append('latitude', latitude);
-                formData.append('longitude', longitude);
-
-                for (const side in uploadImages) {
-                    if (uploadImages[side]) {
-                        formData.append(side, uploadImages[side]);
-                    }
+        const handleSuccess = async (position) => {
+            const { latitude, longitude } = position.coords;
+            const formData = new FormData();
+            
+            // We NO LONGER add user_id. The backend doesn't need it for the prototype.
+            formData.append('latitude', latitude);
+            formData.append('longitude', longitude);
+            
+            for (const side in uploadImages) {
+                if (uploadImages[side]) {
+                    formData.append(side, uploadImages[side]);
                 }
-
-                try {
-                    const response = await axios.post(`${API_URL}/api/identify`, formData);
-                    setResultData({
-                        id: response.data.record_id || Date.now(), // fallback if no id from backend
-                        animal_name: 'Identification Result',
-                        breed_result: response.data.result,
-                        is_saved: false,
-                        latitude,
-                        longitude
-                    });
-                } catch (err) {
-                    setError(err.response?.data?.error || 'An error occurred.');
-                } finally {
-                    setIsLoading(false);
-                }
-            },
-            () => {
-                setError("Location permission denied.");
+            }
+            
+            try {
+                // IMPORTANT: The URL now includes "/api"
+                const response = await axios.post(`${API_URL}/api/identify`, formData);
+                setResultData({
+                    id: response.data.record_id,
+                    animal_name: 'Identification Result',
+                    breed_result: response.data.result,
+                    is_saved: false,
+                    latitude: latitude,
+                    longitude: longitude
+                });
+            } catch (err) {
+                setError(err.response?.data?.error || 'An error occurred during identification.');
+            } finally {
                 setIsLoading(false);
             }
-        );
+        };
+
+        const handleError = () => {
+            // If location fails, we will now send dummy coordinates to proceed
+            console.warn("Location permission denied or failed. Sending dummy coordinates for prototype.");
+            handleSuccess({ coords: { latitude: 0.0, longitude: 0.0 } });
+        };
+        
+        navigator.geolocation.getCurrentPosition(handleSuccess, handleError);
     };
 
     const resetWizard = () => {
@@ -78,18 +81,12 @@ const ConfirmPage = () => {
     };
 
     if (isLoading) return <Loader message="Getting location & analyzing images..." />;
-
+    
     if (!Object.values(uploadImages).every(Boolean)) {
         return (
             <div style={{textAlign: 'center', marginTop: '2rem'}}>
                 <p>Some images are missing. Please start over.</p>
-                <a
-                    href="/upload/front"
-                    className='btn-primary'
-                    style={{textDecoration: 'none', display: 'inline-block', width: 'auto', padding: '0.5rem 1rem'}}
-                >
-                    Start Over
-                </a>
+                <a href="/upload/front" className='btn-primary' style={{textDecoration: 'none', display: 'inline-block', width: 'auto', padding: '0.5rem 1rem'}}>Start Over</a>
             </div>
         );
     }
@@ -117,14 +114,7 @@ const ConfirmPage = () => {
             </div>
             {error && <p style={{ color: 'red', textAlign: 'center', fontWeight: 'bold' }}>{error}</p>}
             <button className="btn-primary identify-btn" onClick={handleSubmit}>Identify Breed</button>
-            {resultData && (
-                <DetailsModal
-                    record={resultData}
-                    images={uploadImages}
-                    onClose={resetWizard}
-                    showSave={true}
-                />
-            )}
+            {resultData && <DetailsModal record={resultData} images={uploadImages} onClose={resetWizard} showSave={true}/>}
         </div>
     );
 };
