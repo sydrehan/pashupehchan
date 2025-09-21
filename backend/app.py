@@ -84,7 +84,8 @@ def register_user():
     }), 201
 
 # Breed identification (DB disabled)
-@app.route("/identify", methods=["POST"])
+# In backend/app.py
+@app.route("/api/identify", methods=["POST"])
 def identify_breed():
     prompt = """
     ROLE: You are an expert Livestock Breed Identifier.
