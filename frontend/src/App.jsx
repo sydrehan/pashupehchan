@@ -23,13 +23,11 @@ import './App.css';
 
 // Yeh component check karta hai ki user logged in hai ya nahi
 const PrivateRoute = ({ children }) => {
-    const { user } = React.useContext(AppContext);
-    return user ? children : <Navigate to="/profile" />;
+    return children; // Always allow access
 };
 // Yeh component user ko login ke baad profile page par jaane se rokta hai
 const PublicRoute = ({ children }) => {
-    const { user } = React.useContext(AppContext);
-    return !user ? children : <Navigate to="/upload/front" />;
+    return children; // Always allow access
 };
 
 const AppContent = () => {

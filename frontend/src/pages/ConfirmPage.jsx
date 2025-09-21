@@ -39,7 +39,8 @@ const ConfirmPage = () => {
                 for (const side in uploadImages) { if (uploadImages[side]) formData.append(side, uploadImages[side]); }
                 
                 try {
-                    const response = await axios.post(`${API_URL}/identify`, formData);
+                    // const response = await axios.post(`${API_URL}/identify`, formData);
+                    const response = await axios.post(`${API_URL}/api/identify`, formData);
                     setResultData({
                         id: response.data.record_id, animal_name: 'Identification Result',
                         breed_result: response.data.result, is_saved: false,
