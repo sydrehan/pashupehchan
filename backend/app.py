@@ -1,4 +1,4 @@
-# File Path: backend/app.py (DB CODE COMMENTED OUT VERSION)
+# File Path: backend/app.py (DB Code Commented Out Version, Vercel Ready)
 
 # Step 1: Import all necessary libraries
 import os
@@ -6,7 +6,7 @@ import uuid
 import datetime
 import re
 from flask import Flask, request, jsonify, send_from_directory
-# from flask_sqlalchemy import SQLAlchemy   # ❌ Commented out DB import
+# from flask_sqlalchemy import SQLAlchemy   # ❌ DB disabled
 from flask_cors import CORS
 from dotenv import load_dotenv
 import google.generativeai as genai
@@ -16,19 +16,16 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# This is the secret password (API Key) you will give ONLY to the BPA team.
+# Secret password for BPA integration
 BPA_API_KEY = "PASHUPEHCHAN_BPA_SECRET_123XYZ" 
 
-# Step 3: Database and Folder Configuration (Commented out DB)
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///breedid.db'
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# db = SQLAlchemy(app)
+# Step 3: Upload Folder Setup
 UPLOAD_FOLDER = 'uploads'
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Step 4: Configure the Google Gemini API
+# Step 4: Configure Google Gemini API
 try:
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
     model = genai.GenerativeModel("gemini-1.5-flash")
@@ -36,7 +33,7 @@ except Exception as e:
     print(f"CRITICAL ERROR: Failed to configure Gemini API. Error: {e}")
     model = None
 
-# Step 5: Define the Database Structure (Models) ❌ Commented out
+# Step 5: Database Models ❌ Disabled
 """
 class User(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -62,8 +59,9 @@ class History(db.Model):
     longitude = db.Column(db.Float, nullable=True)
 """
 
-# --- Step 6: Define ALL API Endpoints (Routes) ---
+# --- Step 6: API Endpoints ---
 
+# User registration (DB disabled)
 @app.route("/register", methods=["POST"])
 def register_user():
     data = request.json
@@ -77,7 +75,6 @@ def register_user():
     if not data['pincode'].isdigit() or len(data['pincode']) != 6: 
         return jsonify({"error": "Invalid pincode"}), 400
     
-    # ❌ Database save removed
     new_user_id = str(uuid.uuid4())
     return jsonify({
         "id": new_user_id,
@@ -86,6 +83,7 @@ def register_user():
         "message": "User registered! (DB Disabled)"
     }), 201
 
+# Breed identification (DB disabled)
 @app.route("/identify", methods=["POST"])
 def identify_breed():
     prompt = """
@@ -105,10 +103,9 @@ def identify_breed():
     """
     if not model: 
         return jsonify({"error": "AI model not configured"}), 500
-    if 'user_id' not in request.form or 'latitude' not in request.form or not all(k in request.files for k in ['front', 'back', 'left', 'right']):
-        return jsonify({"error": "User ID, location, and all four images are required."}), 400
+    if 'latitude' not in request.form or not all(k in request.files for k in ['front', 'back', 'left', 'right']):
+        return jsonify({"error": "Location and all four images are required."}), 400
     
-    user_id = request.form['user_id']
     latitude = request.form.get('latitude')
     longitude = request.form.get('longitude')
 
@@ -129,7 +126,6 @@ def identify_breed():
         if cleaned_text.strip().startswith("Error:"): 
             return jsonify({"error": cleaned_text.replace("Error: ", "")}), 400
 
-        # ❌ DB save skipped
         return jsonify({
             "result": cleaned_text,
             "record_id": str(uuid.uuid4()),  # fake ID since DB disabled
@@ -138,9 +134,9 @@ def identify_breed():
     except Exception as e: 
         return jsonify({"error": f"AI analysis failed. Error: {str(e)}"}), 500
 
+# Mock history routes (DB disabled)
 @app.route("/history/<user_id>", methods=["GET"])
 def get_history(user_id):
-    # ❌ DB removed, returning mock data
     return jsonify([{
         "id": "demo123",
         "animal_name": "Demo Cow",
@@ -159,11 +155,10 @@ def get_history(user_id):
 
 @app.route("/history/saved/<user_id>", methods=["GET"])
 def get_saved_history(user_id):
-    return jsonify([])  # ❌ No DB, return empty
+    return jsonify([])
 
 @app.route("/history/toggle_save/<record_id>", methods=["POST"])
 def toggle_save_record(record_id):
-    # ❌ DB Disabled
     return jsonify({"message": "Save status updated (DB Disabled)", "new_status": True}), 200
 
 @app.route("/translate", methods=["POST"])
@@ -183,18 +178,19 @@ def translate_text():
 
 @app.route("/history/delete/<record_id>", methods=["DELETE"])
 def delete_history_record(record_id):
-    # ❌ DB Disabled
     return jsonify({"message": "Record deleted successfully (DB Disabled)"}), 200
 
+# Serve uploaded images
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-# --- Step 7: Initialize Database and Run the App ---
+# Initialize DB ❌ Disabled
 """
 with app.app_context():
     db.create_all()
 """
 
+# Run Flask app
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
