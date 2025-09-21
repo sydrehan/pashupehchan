@@ -1,10 +1,9 @@
-# File Path: backend/app.py (DB Code Commented Out Version, Vercel Ready)
+# File Path: backend/app.py (Vercel Ready, DB Disabled)
 
 # Step 1: Import all necessary libraries
 import os
 import uuid
 import datetime
-import re
 from flask import Flask, request, jsonify, send_from_directory
 # from flask_sqlalchemy import SQLAlchemy   # ❌ DB disabled
 from flask_cors import CORS
@@ -17,10 +16,10 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Secret password for BPA integration
-BPA_API_KEY = "PASHUPEHCHAN_BPA_SECRET_123XYZ" 
+BPA_API_KEY = "PASHUPEHCHAN_BPA_SECRET_123XYZ"
 
-# Step 3: Upload Folder Setup
-UPLOAD_FOLDER = 'uploads'
+# Step 3: Vercel-compatible Upload Folder Setup
+UPLOAD_FOLDER = '/tmp/uploads'  # CRITICAL: Use /tmp for Vercel
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -66,15 +65,15 @@ class History(db.Model):
 def register_user():
     data = request.json
     required_fields = ['name', 'phone', 'state', 'district', 'pincode', 'gender']
-    if not all(k in data for k in required_fields): 
+    if not all(k in data for k in required_fields):
         return jsonify({"error": "Missing fields"}), 400
-    if not data['name'].strip(): 
+    if not data['name'].strip():
         return jsonify({"error": "Name cannot be empty"}), 400
-    if not data['phone'].isdigit() or len(data['phone']) < 10: 
+    if not data['phone'].isdigit() or len(data['phone']) < 10:
         return jsonify({"error": "Invalid phone"}), 400
-    if not data['pincode'].isdigit() or len(data['pincode']) != 6: 
+    if not data['pincode'].isdigit() or len(data['pincode']) != 6:
         return jsonify({"error": "Invalid pincode"}), 400
-    
+
     new_user_id = str(uuid.uuid4())
     return jsonify({
         "id": new_user_id,
@@ -84,8 +83,7 @@ def register_user():
     }), 201
 
 # Breed identification (DB disabled)
-# In backend/app.py
-@app.route("/api/identify", methods=["POST"])
+@app.route("/identify", methods=["POST"])
 def identify_breed():
     prompt = """
     ROLE: You are an expert Livestock Breed Identifier.
@@ -102,11 +100,11 @@ def identify_breed():
         Main Identity: [3 key visual points]
         Market Value: [Estimated value in INR]
     """
-    if not model: 
+    if not model:
         return jsonify({"error": "AI model not configured"}), 500
     if 'latitude' not in request.form or not all(k in request.files for k in ['front', 'back', 'left', 'right']):
         return jsonify({"error": "Location and all four images are required."}), 400
-    
+
     latitude = request.form.get('latitude')
     longitude = request.form.get('longitude')
 
@@ -116,7 +114,7 @@ def identify_breed():
         filename = f"{uuid.uuid4()}_{file.filename}"
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
-        with open(filepath, "rb") as f: 
+        with open(filepath, "rb") as f:
             image_bytes = f.read()
         image_parts.append({'mime_type': file.mimetype, 'data': image_bytes})
         saved_paths[side] = filename
@@ -124,7 +122,7 @@ def identify_breed():
     try:
         response = model.generate_content([prompt] + image_parts)
         cleaned_text = response.text.replace('**', '').replace('##', '').strip()
-        if cleaned_text.strip().startswith("Error:"): 
+        if cleaned_text.strip().startswith("Error:"):
             return jsonify({"error": cleaned_text.replace("Error: ", "")}), 400
 
         return jsonify({
@@ -132,7 +130,7 @@ def identify_breed():
             "record_id": str(uuid.uuid4()),  # fake ID since DB disabled
             "message": "AI analysis done (DB Disabled)"
         })
-    except Exception as e: 
+    except Exception as e:
         return jsonify({"error": f"AI analysis failed. Error: {str(e)}"}), 500
 
 # Mock history routes (DB disabled)
@@ -167,14 +165,14 @@ def translate_text():
     data = request.json
     original_text = data.get('text')
     target_language = data.get('target_language')
-    if not original_text or not target_language: 
+    if not original_text or not target_language:
         return jsonify({"error": "Text and target language are required."}), 400
     prompt = f"Translate the following text into {target_language}. Maintain the original 'Key: Value' format. Text:\n\n{original_text}"
     try:
         response = model.generate_content(prompt)
         cleaned_text = response.text.replace('**', '')
         return jsonify({"translated_text": cleaned_text})
-    except Exception as e: 
+    except Exception as e:
         return jsonify({"error": f"Translation failed. Error: {str(e)}"}), 500
 
 @app.route("/history/delete/<record_id>", methods=["DELETE"])
